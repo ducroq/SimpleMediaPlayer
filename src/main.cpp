@@ -1,9 +1,12 @@
 /*
+Simple media player using Arduino Nanon, DFPlayer and 2 ky-040 rotary encoders.
+Continously play mp3s from one of the mp3 folders on an SD card in arbitrary order.
+Switch folders using one of the rotary encoders.
+
 2020/01/27 Jeroen Veen
 Inspired by John Potter (techno-womble)
 
 See .platformio\lib\DFRobotDFPlayerMini_ID1308\doc for datasheet of DFPlayer
-TODO: if file opening fails, retry another one
 
 Audio data sorted by folder, supports up to 100 folders, every folder can hold up to 255 songs
 Files are stored in directories named 01, 02, etc. The directory names must be two digits long with a leading 'zero' i.e. 01 up to a maximum of 99.
