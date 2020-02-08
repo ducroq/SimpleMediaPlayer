@@ -2,6 +2,7 @@
 Simple media player using Arduino Nanon, DFPlayer and 2 ky-040 rotary encoders.
 Continously play mp3s from one of the mp3 folders on an SD card in arbitrary order.
 Switch folders using one of the rotary encoders.
+Note that this DFPlayer board seems to introduce noise and pops, according to some fora it was not very well designed.
 
 2020/01/27 Jeroen Veen
 Inspired by John Potter (techno-womble)
@@ -28,7 +29,6 @@ Rename files using a rename python script, something like:
   for (i,filename) in enumerate(file_list):
       title, ext = os.path.splitext(os.path.basename(filename))
       os.rename(filename, os.path.join(data_path, '{0:03d}'.format(i+1) + ext ))    
-
 */
 #include <Arduino.h>
 #include <SoftwareSerial.h>
@@ -90,7 +90,7 @@ void setup()
   // Set device we use SD as default
   myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
 
-  myDFPlayer.volume(10); //Set volume value. From 0 to 30
+  myDFPlayer.volume(1); //Set volume value. From 0 to 30
 
   // Find the number of folders
   myDFPlayer.waitAvailable(100);
@@ -127,10 +127,8 @@ void loop()
   static bool mute = false;
 
   // Read inputs
-  // werkt dit?
-  myDFPlayer.waitAvailable(10); 
   uint8_t type = myDFPlayer.readType();
-  uint8_t val = myDFPlayer.read(); 
+  uint8_t val = myDFPlayer.read();
   rotaryEncoder1.read();
   rotaryEncoder2.read();
 
@@ -138,18 +136,18 @@ void loop()
     printDetail(type, val); //Print the detail message from DFPlayer to handle different errors and states.
 
   // Play next mp3?
-  if ((type == DFPlayerPlayFinished) || (type == DFPlayerError) || (type==DFPlayerCardInserted)) 
+  if ((type == DFPlayerPlayFinished) || (type == DFPlayerError) || (type == DFPlayerCardInserted))
   {
     // myDFPlayer.stop();
     // delay(150);
     playArbitraryTrack(currentFolder);
-  }  
+  }
   int8_t folderButton = rotaryEncoder1.buttonChange();
   if (folderButton > 0) // button pressed
   {
     Serial.println("next");
     playArbitraryTrack(currentFolder);
-  }  
+  }
 
   // Switch to another mp3 folder?
   int16_t folderChange = rotaryEncoder1.positionChange();
@@ -171,9 +169,17 @@ void loop()
   if (volChange != 0)
   {
     if (volChange > 0)
+    {
       myDFPlayer.volumeUp(); // Volume Up
+      if (serialDebug)
+        Serial.println("Volume up");
+    }
     else
+    {
       myDFPlayer.volumeDown(); // Volume Down
+      if (serialDebug)
+        Serial.println("Volume down");
+    }
   }
 
   // Mute?
@@ -196,11 +202,10 @@ void loop()
       delay(100);
       digitalWrite(mutePin, false);
       if (serialDebug)
-        Serial.println("unmutd");
+        Serial.println("unmuted");
     }
   }
 }
-
 
 void playArbitraryTrack(uint8_t folder)
 {
